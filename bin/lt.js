@@ -1,65 +1,38 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
 
-const openurl = require('openurl');
-const yargs = require('yargs');
+const openurl = require('openurl')
 
-const localtunnel = require('../localtunnel');
-const { version } = require('../package');
+const localtunnel = require('../localtunnel')
+const { version } = require('../package')
+const { program } = require('commander')
+const { createLogger } = require('../lib/Logger')
+const log = createLogger({
+  name: 'bin/l2.js'
+})
 
-const { argv } = yargs
+const prg = program
   .usage('Usage: lt --port [num] <options>')
-  .env(true)
-  .option('p', {
-    alias: 'port',
-    describe: 'Internal HTTP server port',
-  })
-  .option('h', {
-    alias: 'host',
-    describe: 'Upstream server providing forwarding',
-    default: 'https://localtunnel.me',
-  })
-  .option('s', {
-    alias: 'subdomain',
-    describe: 'Request this subdomain',
-  })
-  .option('l', {
-    alias: 'local-host',
-    describe: 'Tunnel traffic to this host instead of localhost, override Host header to this host',
-  })
-  .option('local-https', {
-    describe: 'Tunnel traffic to a local HTTPS server',
-  })
-  .option('local-cert', {
-    describe: 'Path to certificate PEM file for local HTTPS server',
-  })
-  .option('local-key', {
-    describe: 'Path to certificate key file for local HTTPS server',
-  })
-  .option('local-ca', {
-    describe: 'Path to certificate authority file for self-signed certificates',
-  })
-  .option('allow-invalid-cert', {
-    describe: 'Disable certificate checks for your local HTTPS server (ignore cert/key/ca options)',
-  })
-  .options('o', {
-    alias: 'open',
-    describe: 'Opens the tunnel URL in your browser',
-  })
-  .option('print-requests', {
-    describe: 'Print basic request info',
-  })
-  .require('port')
-  .boolean('local-https')
-  .boolean('allow-invalid-cert')
-  .boolean('print-requests')
-  .help('help', 'Show this help and exit')
-  .version(version);
+  .option('-h, --host <host>', 'Upstream server providing forwarding', 'https://localtunnel.me')
+  .option('-s, --subdomain <subdomain>', 'Request this subdomain')
+  .option('-l, --local-host <localHost>', 'Tunnel traffic to this host instead of localhost, override Host header to this host')
+  .option('--local-https', 'Tunnel traffic to a local HTTPS server')
+  .option('--local-cert <localCert>', 'Path to certificate PEM file for local HTTPS server')
+  .option('--local-key <localKey>', 'Path to certificate key file for local HTTPS server')
+  .option('--local-ca <localCA>', 'Path to certificate authority file for self-signed certificates')
+  .option('--allow-invalid-cert', 'Disable certificate checks for your local HTTPS server (ignore cert/key/ca options)')
+  .option('-o, --open', 'Opens the tunnel URL in your browser')
+  .option('--print-requests', 'Print basic request info')
+  .requiredOption('-p, --port <port>', 'Internal HTTP server port')
+  .option('--version', 'output the version number', version)
+const argv = prg
+  .parse(process.argv).opts()
 
-if (typeof argv.port !== 'number') {
-  yargs.showHelp();
-  console.error('\nInvalid argument: `port` must be a number');
-  process.exit(1);
+argv.port = parseInt(argv.port)
+
+if (typeof argv.port !== 'number' || isNaN(argv.port)) {
+  log.warn('Invalid port provided')
+  prg.help()
+  process.exit(1)
 }
 
 (async () => {
@@ -72,16 +45,16 @@ if (typeof argv.port !== 'number') {
     local_cert: argv.localCert,
     local_key: argv.localKey,
     local_ca: argv.localCa,
-    allow_invalid_cert: argv.allowInvalidCert,
+    allow_invalid_cert: argv.allowInvalidCert
   }).catch(err => {
-    throw err;
-  });
+    throw err
+  })
 
   tunnel.on('error', err => {
-    throw err;
-  });
+    throw err
+  })
 
-  console.log('your url is: %s', tunnel.url);
+  log.info('your url is: %s', tunnel.url)
 
   /**
    * `cachedUrl` is set when using a proxy server that support resource caching.
@@ -89,16 +62,16 @@ if (typeof argv.port !== 'number') {
    * @see https://github.com/localtunnel/localtunnel/pull/319#discussion_r319846289
    */
   if (tunnel.cachedUrl) {
-    console.log('your cachedUrl is: %s', tunnel.cachedUrl);
+    log.info('your cachedUrl is: %s', tunnel.cachedUrl)
   }
 
   if (argv.open) {
-    openurl.open(tunnel.url);
+    openurl.open(tunnel.url)
   }
 
   if (argv['print-requests']) {
     tunnel.on('request', info => {
-      console.log(new Date().toString(), info.method, info.path);
-    });
+      log.info(new Date().toString(), info.method, info.path)
+    })
   }
-})();
+})()
