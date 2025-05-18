@@ -21,7 +21,7 @@
     "commander": "14.0.0",
     "openurl": "1.1.1",
     "pino": "^9.0.0",
-    "wtfnode": "^0.9.1"
+    "wtfnode": "^0.10.0"
   },
   "devDependencies": {
     "standard": "17.1.2"
