@@ -20,7 +20,7 @@
     "axios": "1.12.2",
     "commander": "14.0.1",
     "openurl": "1.1.1",
-    "pino": "^9.0.0",
+    "pino": "^10.0.0",
     "wtfnode": "^0.10.0"
   },
   "devDependencies": {
