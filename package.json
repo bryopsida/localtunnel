@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "axios": "1.12.2",
-    "commander": "14.0.1",
+    "commander": "14.0.2",
     "openurl": "1.1.1",
     "pino": "^10.0.0",
     "wtfnode": "^0.10.0"
